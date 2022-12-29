@@ -27,15 +27,9 @@ namespace math {
 
 
             constexpr auto operator+() const noexcept { return Vector((*this)[Is]...); }
-            constexpr auto operator-() const noexcept {
-                return Vector(-(*this)[Is]...);
-            }
-            constexpr auto operator~() const noexcept {
-                return Vector(~(*this)[Is]...);
-            }
-            constexpr auto operator!() const noexcept {
-                return Vector(!(*this)[Is]...);
-            }
+            constexpr auto operator-() const noexcept { return Vector(-(*this)[Is]...); }
+            constexpr auto operator~() const noexcept { return Vector(~(*this)[Is]...); }
+            constexpr auto operator!() const noexcept { return Vector(!(*this)[Is]...); }
 
 
 
