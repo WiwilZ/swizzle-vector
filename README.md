@@ -1,10 +1,21 @@
 # Vector ——仿GLSL中Swizzle操作的向量库
-主要通过匿名union和Swizzle类实现属性操作
-需要开启C++20，gcc、clang和msvc均编译通过
-## 主要使用的C++特性
+主要通过匿名union和特制的Swizzle类实现属性操作，需要开启C++20，gcc、clang和msvc均编译通过。
+## API
+- operator[]
+- operator{+、-、~、~}()
+- operator{++、--}()、operator{++、--}(int)
+- operaotr{=、+=、-=、\*=、/=、%=、&=、|=、^=、<<=、>>}(Swizzle<N, T>&/Vector<N, T>&, U scalar/Swizzle<N, U>/Vector<N, U>)
+- operaotr{+、-、\*、/、%、&、|、^、<<、>>、&&、||}(Swizzle<N, T>/Vector<N, T>, U scalar/Swizzle<N, U>/Vector<N, U>)
+- operaotr{+、-、\*、/、%、&、|、^、<<、>>、&&、||}(U scalar, Swizzle<N, T>/Vector<N, T>)
+- operator{==、!=}(Swizzle<N, T>/Vector<N, T>, Swizzle<N, T>/Vector<N, T>) （元素类型必须相同，满足全序关系，返回类型为bool）
+- 含重复元素的swizzle属性只能进行const操作
+## 编译器骂人系列（用到的C++特性）
+- CRTP
+- 折叠表达式
+- 模板元编程
+- constexpr元编程
 - 约束
 - CTAD
-- 折叠表达式
 ## 用法实例
 ```cpp
 #include <iostream>
