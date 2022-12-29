@@ -2,7 +2,7 @@
 主要通过匿名union和特制的Swizzle类实现类似C#的属性，需要开启C++20，在Godbolt中使用gcc、clang和msvc均编译通过。
 ## API
 - operator[]
-- operator{+、-、~、~}()
+- operator{+、-、\~、!}()
 - operator{++、--}()、operator{++、--}(int)
 - operaotr{=、+=、-=、\*=、/=、%=、&=、|=、^=、<<=、>>}(Swizzle<N, T>&/Vector<N, T>&, U scalar/Swizzle<N, U>/Vector<N, U>)
 - operaotr{+、-、\*、/、%、&、|、^、<<、>>、&&、||}(Swizzle<N, T>/Vector<N, T>, U scalar/Swizzle<N, U>/Vector<N, U>)
