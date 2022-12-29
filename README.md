@@ -1,5 +1,5 @@
 # Vector ——仿GLSL中Swizzle操作的向量库
-主要通过匿名union和特制的Swizzle类实现属性操作，需要开启C++20，gcc、clang和msvc均编译通过。
+主要通过匿名union和特制的Swizzle类实现类似C#的属性，需要开启C++20，在Godbolt中使用gcc、clang和msvc均编译通过。
 ## API
 - operator[]
 - operator{+、-、~、~}()
