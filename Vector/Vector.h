@@ -25,12 +25,10 @@ namespace math {
             }
 
 
-
             constexpr auto operator+() const noexcept { return Vector((*this)[Is]...); }
             constexpr auto operator-() const noexcept { return Vector(-(*this)[Is]...); }
             constexpr auto operator~() const noexcept { return Vector(~(*this)[Is]...); }
             constexpr auto operator!() const noexcept { return Vector(!(*this)[Is]...); }
-
 
 
             constexpr Derived& operator++() noexcept {
@@ -63,7 +61,6 @@ namespace math {
             }
 
 
-
             constexpr Derived& operator=(auto&& rhs) noexcept {
                 apply_iop(rhs, [](T& e, T t) { e = t; });
                 return *static_cast<Derived*>(this);
@@ -79,7 +76,6 @@ namespace math {
             constexpr void operator^=(auto&& rhs) noexcept { apply_iop(rhs, [](T& e, T t) { e ^= t; }); }
             constexpr void operator<<=(auto&& rhs) noexcept { apply_iop(rhs, [](T& e, T t) { e <<= t; }); }
             constexpr void operator>>=(auto&& rhs) noexcept { apply_iop(rhs, [](T& e, T t) { e >>= t; }); }
-
 
 
             constexpr auto operator+(auto&& rhs) const noexcept { return apply_op(rhs, add{}); }
@@ -108,7 +104,6 @@ namespace math {
             friend constexpr auto operator>>(arithmetic auto lhs, const Base& rhs) noexcept { return apply_op(lhs, rhs, rshift{}); }
             friend constexpr auto operator&&(arithmetic auto lhs, const Base& rhs) noexcept { return apply_op(lhs, rhs, logical_and{}); }
             friend constexpr auto operator||(arithmetic auto lhs, const Base& rhs) noexcept { return apply_op(lhs, rhs, logical_or{}); }
-
 
 
             template <class Derived1, size_t... Is1>
@@ -255,6 +250,7 @@ namespace math {
         };
     };
 
+
     template <arithmetic T>
     struct Vector<3, T> : detail::Base<Vector<3, T>, 3, T, 0, 1, 2> {
         using detail::Base<Vector<3, T>, 3, T, 0, 1, 2>::operator=;
@@ -311,6 +307,7 @@ namespace math {
             detail::SwizzleMember<4, T, 2, 2, 2, 2> zzzz, bbbb, wwww;
         };
     };
+
 
     template <arithmetic T>
     struct Vector<4, T> : detail::Base<Vector<4, T>, 4, T, 0, 1, 2, 3> {
