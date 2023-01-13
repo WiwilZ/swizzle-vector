@@ -181,18 +181,21 @@ namespace math {
             }
         };
 
+
+
         template <size_t N, arithmetic T, size_t... Is>
         struct Swizzle : Base<Swizzle<N, T, Is...>, N, T, Is...> {
             using Base<Swizzle<N, T, Is...>, N, T, Is...>::operator=;
             T data[N];
         };
 
+
+
         template <size_t I0, size_t I1, size_t I2 = static_cast<size_t>(-1), size_t I3 = static_cast<size_t>(-2)>
-        inline constexpr bool ContainsDuplicate() noexcept {
-            return I0 == I1 || I0 == I2 || I0 == I3 || I1 == I2 || I1 == I3 || I2 == I3;
-        }
+        constexpr bool ContainsDuplicate = I0 == I1 || I0 == I2 || I0 == I3 || I1 == I2 || I1 == I3 || I2 == I3;
+
         template <size_t N, arithmetic T, size_t... Is>
-        using SwizzleMember = std::conditional_t<ContainsDuplicate<Is...>(), const Swizzle<N, T, Is...>, Swizzle<N, T, Is...>>;
+        using SwizzleProperty = std::conditional_t<ContainsDuplicate<Is...>, const Swizzle<N, T, Is...>, Swizzle<N, T, Is...>>;
     }  // namespace detail
 
 
@@ -219,34 +222,34 @@ namespace math {
             T data[2];
             struct { T x, y; };
             struct { T u, v; };
-            detail::SwizzleMember<2, T, 0, 0> xx, uu;
-            detail::SwizzleMember<2, T, 0, 1> xy, uv;
-            detail::SwizzleMember<2, T, 1, 0> yx, vu;
-            detail::SwizzleMember<2, T, 1, 1> yy, vv;
-            detail::SwizzleMember<2, T, 0, 0, 0> xxx, uuu;
-            detail::SwizzleMember<2, T, 0, 0, 1> xxy, uuv;
-            detail::SwizzleMember<2, T, 0, 1, 0> xyx, uvu;
-            detail::SwizzleMember<2, T, 0, 1, 1> xyy, uvv;
-            detail::SwizzleMember<2, T, 1, 0, 0> yxx, vuu;
-            detail::SwizzleMember<2, T, 1, 0, 1> yxy, vuv;
-            detail::SwizzleMember<2, T, 1, 1, 0> yyx, vvu;
-            detail::SwizzleMember<2, T, 1, 1, 1> yyy, vvv;
-            detail::SwizzleMember<2, T, 0, 0, 0, 0> xxxx, uuuu;
-            detail::SwizzleMember<2, T, 0, 0, 0, 1> xxxy, uuuv;
-            detail::SwizzleMember<2, T, 0, 0, 1, 0> xxyx, uuvu;
-            detail::SwizzleMember<2, T, 0, 0, 1, 1> xxyy, uuvv;
-            detail::SwizzleMember<2, T, 0, 1, 0, 0> xyxx, uvuu;
-            detail::SwizzleMember<2, T, 0, 1, 0, 1> xyxy, uvuv;
-            detail::SwizzleMember<2, T, 0, 1, 1, 0> xyyx, uvvu;
-            detail::SwizzleMember<2, T, 0, 1, 1, 1> xyyy, uvvv;
-            detail::SwizzleMember<2, T, 1, 0, 0, 0> yxxx, vuuu;
-            detail::SwizzleMember<2, T, 1, 0, 0, 1> yxxy, vuuv;
-            detail::SwizzleMember<2, T, 1, 0, 1, 0> yxyx, vuvu;
-            detail::SwizzleMember<2, T, 1, 0, 1, 1> yxyy, vuvv;
-            detail::SwizzleMember<2, T, 1, 1, 0, 0> yyxx, vvuu;
-            detail::SwizzleMember<2, T, 1, 1, 0, 1> yyxy, vvuv;
-            detail::SwizzleMember<2, T, 1, 1, 1, 0> yyyx, vvvu;
-            detail::SwizzleMember<2, T, 1, 1, 1, 1> yyyy, vvvv;
+            detail::SwizzleProperty<2, T, 0, 0> xx, uu;
+            detail::SwizzleProperty<2, T, 0, 1> xy, uv;
+            detail::SwizzleProperty<2, T, 1, 0> yx, vu;
+            detail::SwizzleProperty<2, T, 1, 1> yy, vv;
+            detail::SwizzleProperty<2, T, 0, 0, 0> xxx, uuu;
+            detail::SwizzleProperty<2, T, 0, 0, 1> xxy, uuv;
+            detail::SwizzleProperty<2, T, 0, 1, 0> xyx, uvu;
+            detail::SwizzleProperty<2, T, 0, 1, 1> xyy, uvv;
+            detail::SwizzleProperty<2, T, 1, 0, 0> yxx, vuu;
+            detail::SwizzleProperty<2, T, 1, 0, 1> yxy, vuv;
+            detail::SwizzleProperty<2, T, 1, 1, 0> yyx, vvu;
+            detail::SwizzleProperty<2, T, 1, 1, 1> yyy, vvv;
+            detail::SwizzleProperty<2, T, 0, 0, 0, 0> xxxx, uuuu;
+            detail::SwizzleProperty<2, T, 0, 0, 0, 1> xxxy, uuuv;
+            detail::SwizzleProperty<2, T, 0, 0, 1, 0> xxyx, uuvu;
+            detail::SwizzleProperty<2, T, 0, 0, 1, 1> xxyy, uuvv;
+            detail::SwizzleProperty<2, T, 0, 1, 0, 0> xyxx, uvuu;
+            detail::SwizzleProperty<2, T, 0, 1, 0, 1> xyxy, uvuv;
+            detail::SwizzleProperty<2, T, 0, 1, 1, 0> xyyx, uvvu;
+            detail::SwizzleProperty<2, T, 0, 1, 1, 1> xyyy, uvvv;
+            detail::SwizzleProperty<2, T, 1, 0, 0, 0> yxxx, vuuu;
+            detail::SwizzleProperty<2, T, 1, 0, 0, 1> yxxy, vuuv;
+            detail::SwizzleProperty<2, T, 1, 0, 1, 0> yxyx, vuvu;
+            detail::SwizzleProperty<2, T, 1, 0, 1, 1> yxyy, vuvv;
+            detail::SwizzleProperty<2, T, 1, 1, 0, 0> yyxx, vvuu;
+            detail::SwizzleProperty<2, T, 1, 1, 0, 1> yyxy, vvuv;
+            detail::SwizzleProperty<2, T, 1, 1, 1, 0> yyyx, vvvu;
+            detail::SwizzleProperty<2, T, 1, 1, 1, 1> yyyy, vvvv;
         };
     };
 
@@ -280,31 +283,31 @@ namespace math {
             struct { T x, y, z; };
             struct { T r, g, b; };
             struct { T u, v, w; };
-            detail::SwizzleMember<3, T, 0, 0, 0> xxx, rrr, uuu;
-            detail::SwizzleMember<3, T, 0, 0, 1> xxy, rrg, uuv;
-            detail::SwizzleMember<3, T, 0, 0, 2> xxz, rrb, uuw;
-            detail::SwizzleMember<3, T, 0, 1, 1> xyy, rgg, uvv;
-            detail::SwizzleMember<3, T, 0, 1, 2> xyz, rgb, uvw;
-            detail::SwizzleMember<3, T, 0, 2, 2> xzz, rbb, uww;
-            detail::SwizzleMember<3, T, 1, 1, 1> yyy, ggg, vvv;
-            detail::SwizzleMember<3, T, 1, 1, 2> yyz, ggb, vvw;
-            detail::SwizzleMember<3, T, 1, 2, 2> yzz, gbb, vww;
-            detail::SwizzleMember<3, T, 2, 2, 2> zzz, bbb, www;
-            detail::SwizzleMember<4, T, 0, 0, 0, 0> xxxx, rrrr, uuuu;
-            detail::SwizzleMember<4, T, 0, 0, 0, 1> xxxy, rrrg, uuuv;
-            detail::SwizzleMember<4, T, 0, 0, 0, 2> xxxz, rrrb, uuuw;
-            detail::SwizzleMember<4, T, 0, 0, 1, 1> xxyy, rrgg, uuvv;
-            detail::SwizzleMember<4, T, 0, 0, 1, 2> xxyz, rrgb, uuvw;
-            detail::SwizzleMember<4, T, 0, 0, 2, 2> xxzz, rrbb, uuww;
-            detail::SwizzleMember<4, T, 0, 1, 1, 1> xyyy, rggg, uvvv;
-            detail::SwizzleMember<4, T, 0, 1, 1, 2> xyyz, rggb, uvvw;
-            detail::SwizzleMember<4, T, 0, 1, 2, 2> xyzz, rgbb, uvww;
-            detail::SwizzleMember<4, T, 0, 2, 2, 2> xzzz, rbbb, uwww;
-            detail::SwizzleMember<4, T, 1, 1, 1, 1> yyyy, gggg, vvvv;
-            detail::SwizzleMember<4, T, 1, 1, 1, 2> yyyz, gggb, vvvw;
-            detail::SwizzleMember<4, T, 1, 1, 2, 2> yyzz, ggbb, vvww;
-            detail::SwizzleMember<4, T, 1, 2, 2, 2> yzzz, gbbb, vwww;
-            detail::SwizzleMember<4, T, 2, 2, 2, 2> zzzz, bbbb, wwww;
+            detail::SwizzleProperty<3, T, 0, 0, 0> xxx, rrr, uuu;
+            detail::SwizzleProperty<3, T, 0, 0, 1> xxy, rrg, uuv;
+            detail::SwizzleProperty<3, T, 0, 0, 2> xxz, rrb, uuw;
+            detail::SwizzleProperty<3, T, 0, 1, 1> xyy, rgg, uvv;
+            detail::SwizzleProperty<3, T, 0, 1, 2> xyz, rgb, uvw;
+            detail::SwizzleProperty<3, T, 0, 2, 2> xzz, rbb, uww;
+            detail::SwizzleProperty<3, T, 1, 1, 1> yyy, ggg, vvv;
+            detail::SwizzleProperty<3, T, 1, 1, 2> yyz, ggb, vvw;
+            detail::SwizzleProperty<3, T, 1, 2, 2> yzz, gbb, vww;
+            detail::SwizzleProperty<3, T, 2, 2, 2> zzz, bbb, www;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 0> xxxx, rrrr, uuuu;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 1> xxxy, rrrg, uuuv;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 2> xxxz, rrrb, uuuw;
+            detail::SwizzleProperty<4, T, 0, 0, 1, 1> xxyy, rrgg, uuvv;
+            detail::SwizzleProperty<4, T, 0, 0, 1, 2> xxyz, rrgb, uuvw;
+            detail::SwizzleProperty<4, T, 0, 0, 2, 2> xxzz, rrbb, uuww;
+            detail::SwizzleProperty<4, T, 0, 1, 1, 1> xyyy, rggg, uvvv;
+            detail::SwizzleProperty<4, T, 0, 1, 1, 2> xyyz, rggb, uvvw;
+            detail::SwizzleProperty<4, T, 0, 1, 2, 2> xyzz, rgbb, uvww;
+            detail::SwizzleProperty<4, T, 0, 2, 2, 2> xzzz, rbbb, uwww;
+            detail::SwizzleProperty<4, T, 1, 1, 1, 1> yyyy, gggg, vvvv;
+            detail::SwizzleProperty<4, T, 1, 1, 1, 2> yyyz, gggb, vvvw;
+            detail::SwizzleProperty<4, T, 1, 1, 2, 2> yyzz, ggbb, vvww;
+            detail::SwizzleProperty<4, T, 1, 2, 2, 2> yzzz, gbbb, vwww;
+            detail::SwizzleProperty<4, T, 2, 2, 2, 2> zzzz, bbbb, wwww;
         };
     };
 
@@ -350,41 +353,41 @@ namespace math {
             T data[4];
             struct { T x, y, z, w; };
             struct { T r, g, b, a; };
-            detail::SwizzleMember<4, T, 0, 0, 0, 0> xxxx, rrrr;
-            detail::SwizzleMember<4, T, 0, 0, 0, 1> xxxy, rrrg;
-            detail::SwizzleMember<4, T, 0, 0, 0, 2> xxxz, rrrb;
-            detail::SwizzleMember<4, T, 0, 0, 0, 3> xxxw, rrra;
-            detail::SwizzleMember<4, T, 0, 0, 1, 1> xxyy, rrgg;
-            detail::SwizzleMember<4, T, 0, 0, 1, 2> xxyz, rrgb;
-            detail::SwizzleMember<4, T, 0, 0, 1, 3> xxyw, rrga;
-            detail::SwizzleMember<4, T, 0, 0, 2, 2> xxzz, rrbb;
-            detail::SwizzleMember<4, T, 0, 0, 2, 3> xxzw, rrba;
-            detail::SwizzleMember<4, T, 0, 0, 3, 3> xxww, rraa;
-            detail::SwizzleMember<4, T, 0, 1, 1, 1> xyyy, rggg;
-            detail::SwizzleMember<4, T, 0, 1, 1, 2> xyyz, rggb;
-            detail::SwizzleMember<4, T, 0, 1, 1, 3> xyyw, rgga;
-            detail::SwizzleMember<4, T, 0, 1, 2, 2> xyzz, rgbb;
-            detail::SwizzleMember<4, T, 0, 1, 2, 3> xyzw, rgba;
-            detail::SwizzleMember<4, T, 0, 1, 3, 3> xyww, rgaa;
-            detail::SwizzleMember<4, T, 0, 2, 2, 2> xzzz, rbbb;
-            detail::SwizzleMember<4, T, 0, 2, 2, 3> xzzw, rbba;
-            detail::SwizzleMember<4, T, 0, 2, 3, 3> xzww, rbaa;
-            detail::SwizzleMember<4, T, 0, 3, 3, 3> xwww, raaa;
-            detail::SwizzleMember<4, T, 1, 1, 1, 1> yyyy, gggg;
-            detail::SwizzleMember<4, T, 1, 1, 1, 2> yyyz, gggb;
-            detail::SwizzleMember<4, T, 1, 1, 1, 3> yyyw, ggga;
-            detail::SwizzleMember<4, T, 1, 1, 2, 2> yyzz, ggbb;
-            detail::SwizzleMember<4, T, 1, 1, 2, 3> yyzw, ggba;
-            detail::SwizzleMember<4, T, 1, 1, 3, 3> yyww, ggaa;
-            detail::SwizzleMember<4, T, 1, 2, 2, 2> yzzz, gbbb;
-            detail::SwizzleMember<4, T, 1, 2, 2, 3> yzzw, gbba;
-            detail::SwizzleMember<4, T, 1, 2, 3, 3> yzww, gbaa;
-            detail::SwizzleMember<4, T, 1, 3, 3, 3> ywww, gaaa;
-            detail::SwizzleMember<4, T, 2, 2, 2, 2> zzzz, bbbb;
-            detail::SwizzleMember<4, T, 2, 2, 2, 3> zzzw, bbba;
-            detail::SwizzleMember<4, T, 2, 2, 3, 3> zzww, bbaa;
-            detail::SwizzleMember<4, T, 2, 3, 3, 3> zwww, baaa;
-            detail::SwizzleMember<4, T, 3, 3, 3, 3> wwww, aaaa;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 0> xxxx, rrrr;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 1> xxxy, rrrg;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 2> xxxz, rrrb;
+            detail::SwizzleProperty<4, T, 0, 0, 0, 3> xxxw, rrra;
+            detail::SwizzleProperty<4, T, 0, 0, 1, 1> xxyy, rrgg;
+            detail::SwizzleProperty<4, T, 0, 0, 1, 2> xxyz, rrgb;
+            detail::SwizzleProperty<4, T, 0, 0, 1, 3> xxyw, rrga;
+            detail::SwizzleProperty<4, T, 0, 0, 2, 2> xxzz, rrbb;
+            detail::SwizzleProperty<4, T, 0, 0, 2, 3> xxzw, rrba;
+            detail::SwizzleProperty<4, T, 0, 0, 3, 3> xxww, rraa;
+            detail::SwizzleProperty<4, T, 0, 1, 1, 1> xyyy, rggg;
+            detail::SwizzleProperty<4, T, 0, 1, 1, 2> xyyz, rggb;
+            detail::SwizzleProperty<4, T, 0, 1, 1, 3> xyyw, rgga;
+            detail::SwizzleProperty<4, T, 0, 1, 2, 2> xyzz, rgbb;
+            detail::SwizzleProperty<4, T, 0, 1, 2, 3> xyzw, rgba;
+            detail::SwizzleProperty<4, T, 0, 1, 3, 3> xyww, rgaa;
+            detail::SwizzleProperty<4, T, 0, 2, 2, 2> xzzz, rbbb;
+            detail::SwizzleProperty<4, T, 0, 2, 2, 3> xzzw, rbba;
+            detail::SwizzleProperty<4, T, 0, 2, 3, 3> xzww, rbaa;
+            detail::SwizzleProperty<4, T, 0, 3, 3, 3> xwww, raaa;
+            detail::SwizzleProperty<4, T, 1, 1, 1, 1> yyyy, gggg;
+            detail::SwizzleProperty<4, T, 1, 1, 1, 2> yyyz, gggb;
+            detail::SwizzleProperty<4, T, 1, 1, 1, 3> yyyw, ggga;
+            detail::SwizzleProperty<4, T, 1, 1, 2, 2> yyzz, ggbb;
+            detail::SwizzleProperty<4, T, 1, 1, 2, 3> yyzw, ggba;
+            detail::SwizzleProperty<4, T, 1, 1, 3, 3> yyww, ggaa;
+            detail::SwizzleProperty<4, T, 1, 2, 2, 2> yzzz, gbbb;
+            detail::SwizzleProperty<4, T, 1, 2, 2, 3> yzzw, gbba;
+            detail::SwizzleProperty<4, T, 1, 2, 3, 3> yzww, gbaa;
+            detail::SwizzleProperty<4, T, 1, 3, 3, 3> ywww, gaaa;
+            detail::SwizzleProperty<4, T, 2, 2, 2, 2> zzzz, bbbb;
+            detail::SwizzleProperty<4, T, 2, 2, 2, 3> zzzw, bbba;
+            detail::SwizzleProperty<4, T, 2, 2, 3, 3> zzww, bbaa;
+            detail::SwizzleProperty<4, T, 2, 3, 3, 3> zwww, baaa;
+            detail::SwizzleProperty<4, T, 3, 3, 3, 3> wwww, aaaa;
         };
     };
 
