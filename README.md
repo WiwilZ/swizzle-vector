@@ -1,83 +1,62 @@
-# Vector ——仿GLSL中Swizzle操作的向量库
-主要通过匿名union和特制的Swizzle类实现类似C#的属性，需要开启C++20，在Godbolt中使用gcc、clang和msvc均编译通过。
-## API
-- operator[]
-- operator{+、-、\~、!}()
-- operator{++、--}()、operator{++、--}(int)
-- operaotr{=、+=、-=、\*=、/=、%=、&=、|=、^=、<<=、>>}(Swizzle<N, T>&/Vector<N, T>&, U scalar/Swizzle<N, U>/Vector<N, U>)
-- operaotr{+、-、\*、/、%、&、|、^、<<、>>、&&、||}(Swizzle<N, T>/Vector<N, T>, U scalar/Swizzle<N, U>/Vector<N, U>)
-- operaotr{+、-、\*、/、%、&、|、^、<<、>>、&&、||}(U scalar, Swizzle<N, T>/Vector<N, T>)
-- operator{==、!=}(Swizzle<N, T>/Vector<N, T>, Swizzle<N, T>/Vector<N, T>) （元素类型必须相同，满足全序关系，返回类型为bool）
-- 含重复元素的swizzle属性只能进行const操作
-## 编译器骂人系列（用到的C++特性）
+# 仿GLSL中swizzle操作的向量库
+
+## 技术路线
+
+- 通过CRTP实现一个Vector和Swizzle的基类Base，用以实现共有的方法
+- 通过匿名union和特制的swizzle类实现类似C#的属性
+- 限制含有重复元素的swizzle组合为const
+- 通过CRT实现Vector的基类VectorBase，用以实现各维度Vector共有的构造函数
+
+## Vector和Swizzle共有的方法
+
+- T&& operator[](std::size_t)
+- Vector operator{+/-/\~/!}()、operator-()、operator~()、operator!()
+- Swizzle/Vector& operaotr=(Scalar/Swizzle/Vector)
+- void operator{+=/-=/\*=//=/%=/&=/|=/^=/<<=/>>=}(Scalar/Swizzle/Vector)
+- Swizzle/Vector operaotr{+/-/\*///%/&/|/^/<</>>/&&/||/</<=/>/>=/==/!=}(Scalar/Swizzle/Vector)
+- Swizzle/Vector operaotr{+/-/\*///%/&/|/^/<</>>/&&/||/</<=/>/>=/==/!=}(Scalar, Swizzle/Vector)
+- bool all/any()
+- bool equals/not_equals(Swizzle/Vector)
+
+## 编译器骂人系列（用到的C++特性）[需要C++20!!!]
+
 - CRTP
+- using基类的构造函数和赋值函数
+- 变长参数包展开
 - 折叠表达式
-- 模板元编程
-- constexpr元编程
-- 约束
+- concept、requires约束
 - CTAD
-## 用法实例
+
+## demo
+
 ```cpp
-#include <iostream>
+#include <assert.h>
 #include "Vector.h"
 
 int main(int argc, const char* argv[]) {
-    math::Vector v1{2, 6};
-    math::Vector2<long> v2{4, 5};
-    std::cout << "v1(" << v1.x << ", " << v1.y << "), v2(" << v2.x << ", " << v2.y << ")\n";
+    Vector v1{1, 2, 3, 4};
+    assert(v1.x == 1 && v1.y == 2 && v1.z == 3 && v1.w == 4);
 
-    ++v1;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1--;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1++;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    --v1;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
+    Vector a(v1);
+    Vector b(v1.xx);
+    Vector c(1, Vector(0, 0), 1);
+    Vector d(1, 0, c.xy);
+
+    Vector v2(0, v1.xyz);
 
 
-    v1 += 2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
+    assert((Vector(2, 3, 4, 5) > Vector(2, 3, 4, 5) - v1.x).all());
+    assert(!(Vector(0, 3, 4, 5) + v1.xxxx == v1).all());
+    assert((Vector(0, 0, 4, 5) + v1.yyyy == v1).any());
+
+    v1 += v2.y;
+    assert(v1.equals(Vector(2, 3, 4, 5)));
     v1 -= !v2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 *= -v2.yx;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 /= +v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 %= ~v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
+    assert(v1.equals(Vector(1, 3, 4, 5)));
 
 
-    v1.yx += 2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1.yx -= v2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1.yx *= v2.yx;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1.yx /= v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1.yx %= v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-
-
-    v1 = 2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 = -v2;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 = v2.yx;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 = v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-    v1 = v2.yy;
-    std::cout << "v1(" << v1.x << ", " << v1.y << ")\n";
-
-
-    auto v3 = v1.xy + 2 - v2.yx * v1 / 2 % v2 - v1.xy + v2.yx;
-    std::cout << "v3(" << v3.x << ", " << v3.y << ")\n";
-
-
-    bool ret = v1 == v1;
-    std::cout << ret;
+    v1.xyz += v2.www;
+    assert(v1.equals(Vector(4, 6, 7, 5)));
 
 
     return 0;
