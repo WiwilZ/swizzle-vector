@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <cstddef>
 #include <cstdint>
+
 #include <concepts>
 
 
@@ -25,8 +25,6 @@ namespace detail {
     template <typename T>
     concept numeric = integral<T> || floating<T>;
 
-    template <numeric T>
-    using to_floating = std::conditional_t<floating<T>, std::remove_cv_t<T>, float>;
 
     template <numeric L, numeric R>
     constexpr auto common_type_impl() noexcept {
@@ -53,33 +51,9 @@ namespace detail {
     using common_type_t = decltype(common_type_impl<std::remove_cv_t<L>, std::remove_cv_t<R>>());
 
 
-    template <size_t I0, size_t I1, size_t I2 = static_cast<size_t>(-1), size_t I3 = static_cast<size_t>(-2)>
-    constexpr bool is_duplicated_v = I0 == I1 || I0 == I2 || I0 == I3 || I1 == I2 || I1 == I3 || I2 == I3;
+    template <size_t I0, size_t... Is>
+    constexpr bool is_duplicated_v = (... || (I0 == Is)) || is_duplicated_v<Is...>;
 
-
-    template <size_t Start, size_t End, size_t... Indices>
-    struct make_index_sequence_impl : make_index_sequence_impl<Start, End - 1, End - 1, Indices...> {};
-
-    template <size_t Start, size_t... Indices>
-    struct make_index_sequence_impl<Start, Start, Indices...> {
-        using type = std::index_sequence<Indices...>;
-    };
-
-    template <size_t Start, size_t End>
-    using make_index_sequence = typename make_index_sequence_impl<Start, End>::type;
-
-
-    template <typename T>
-    struct extract_element_type {
-        using type = typename T::element_type;
-    };
-    template <numeric T>
-    struct extract_element_type<T> {
-        using type = std::remove_cv_t<T>;
-    };
-
-    template <typename Op, typename... T>
-    struct operator_result {
-        using type = decltype(Op{}(std::declval<typename extract_element_type<T>::type>()...));
-    };
-} // namespace detail
+    template <size_t I0>
+    constexpr bool is_duplicated_v<I0> = false;
+}// namespace detail

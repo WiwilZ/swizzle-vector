@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <cmath>
+
 #include <concepts>
 #include <iostream>
 
@@ -159,11 +161,133 @@ namespace detail {
         }
 
 
-        // other functions
+        // other unary functions
         template <numeric T>
         [[nodiscard]] constexpr auto cast(this const auto& self) noexcept {
             return self.apply_unary_func([](auto e) -> T { return e; });
         }
+
+        template <typename Self>
+        [[nodiscard]] constexpr auto abs(this const Self& self) noexcept {
+            return self.apply_unary_func([](auto e) -> typename Self::element_type { return std::abs(e); });
+        }
+
+        [[nodiscard]] constexpr auto sqrt(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::sqrt(e); });
+        }
+
+        [[nodiscard]] constexpr auto cbrt(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::cbrt(e); });
+        }
+
+        [[nodiscard]] constexpr auto exp(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::exp(e); });
+        }
+
+        [[nodiscard]] constexpr auto exp2(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::exp2(e); });
+        }
+
+        [[nodiscard]] constexpr auto expm1(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::expm1(e); });
+        }
+
+        [[nodiscard]] constexpr auto log(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::log(e); });
+        }
+
+        [[nodiscard]] constexpr auto log10(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::log10(e); });
+        }
+
+        [[nodiscard]] constexpr auto log2(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::log2(e); });
+        }
+
+        [[nodiscard]] constexpr auto log1p(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::log1p(e); });
+        }
+
+        [[nodiscard]] constexpr auto sin(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::sin(e); });
+        }
+
+        [[nodiscard]] constexpr auto cos(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::cos(e); });
+        }
+
+        [[nodiscard]] constexpr auto tan(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::tan(e); });
+        }
+
+        [[nodiscard]] constexpr auto asin(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::asin(e); });
+        }
+
+        [[nodiscard]] constexpr auto acos(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::acos(e); });
+        }
+
+        [[nodiscard]] constexpr auto atan(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::atan(e); });
+        }
+
+        [[nodiscard]] constexpr auto sinh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::sinh(e); });
+        }
+
+        [[nodiscard]] constexpr auto cosh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::cosh(e); });
+        }
+
+        [[nodiscard]] constexpr auto tanh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::tanh(e); });
+        }
+
+        [[nodiscard]] constexpr auto asinh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::asinh(e); });
+        }
+
+        [[nodiscard]] constexpr auto acosh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::acosh(e); });
+        }
+
+        [[nodiscard]] constexpr auto atanh(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::atanh(e); });
+        }
+
+        [[nodiscard]] constexpr auto erf(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::erf(e); });
+        }
+
+        [[nodiscard]] constexpr auto erfc(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::erfc(e); });
+        }
+
+        [[nodiscard]] constexpr auto tgamma(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::tgamma(e); });
+        }
+
+        [[nodiscard]] constexpr auto lgamma(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::lgamma(e); });
+        }
+
+        [[nodiscard]] constexpr auto ceil(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::ceil(e); });
+        }
+
+        [[nodiscard]] constexpr auto floor(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::floor(e); });
+        }
+
+        [[nodiscard]] constexpr auto trunc(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::trunc(e); });
+        }
+
+        [[nodiscard]] constexpr auto round(this const auto& self) noexcept {
+            return self.apply_unary_func([](auto e) { return std::round(e); });
+        }
+
 
         template <typename Self>
         [[nodiscard]] constexpr bool any(this const Self& self) noexcept {
