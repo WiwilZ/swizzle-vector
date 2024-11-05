@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include <iostream>
 
 #include "Vector.h"
@@ -32,7 +34,19 @@ int main() {
     a += d;
     a &= b.xxy;
 
-    std::cout << a.any() << " " << a.all() << std::endl;
+
+    Vector v1{1, 2, 3, 4};
+    assert(v1.x == 1 && v1.y == 2 && v1.z == 3 && v1.w == 4);
+    Vector v2(0, v1.xyz);
+    assert((Vector(2, 3, 4, 5) > Vector(2, 3, 4, 5) - v1.x).all());
+    assert(!(Vector(0, 3, 4, 5) + v1.xxxx == v1).all());
+    assert((Vector(0, 0, 4, 5) + v1.yyyy == v1).any());
+    v1 += v2.y;
+    assert((v1 ==Vector(2, 3, 4, 5)).all());
+    v1 -= !v2;
+    assert((v1 == Vector(1, 3, 4, 5)).all());
+    v1.xyz += v2.www;
+    assert((v1 ==Vector(4, 6, 7, 5)).all());
 
 
     return 0;
