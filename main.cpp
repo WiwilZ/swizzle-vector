@@ -10,26 +10,31 @@ int main() {
     Vector b(1, 2, 3);
     Vector c(a);
     Vector d(b.cast<float>());
-    double arr[]{1, 2};
+    int arr[]{1, 2};
     Vector e(arr);
     Vector f(a.xx);
-    Vector g(a.zx, b.yy);
+    Vector g(1, e);
+    Vector h(a.zx, b.yy);
 
-    std::cout << a << std::endl;
+    std::cout << b << std::endl;
+    std::cout << b.zyx << std::endl;
 
-    a = {1, 2, 3};
-    a = b;
     a = d;
-    a = d.xyx;
-    //    a = e;  // error
-    //    a = f;  // error
-    //    a = a.xx;  // error
-    a.xy = b.yx;
+    a = d.zyx;
+    a.xyz = d.zyx;
+    a.xyz = d.zyx;
+    //    a = e;   // error
+    //    a = e.xy;   // error
+    //    a.xyz = e;   // error
+    //    a.xyz = e.xy;   // error
+    a.zy = e;
+    a.zy = e.xy;
     a.zyx = 1;
-    //    a.xx = 1;  // error
+    a.xy = d.x;
+    //    a.xyx = 1;    // error
 
     auto x = a + 1.;
-    auto y = ~a;
+    auto y = ~a & b.xxy + c;
 
     a += d;
     a &= b.xxy;
@@ -42,11 +47,11 @@ int main() {
     assert(!(Vector(0, 3, 4, 5) + v1.xxxx == v1).all());
     assert((Vector(0, 0, 4, 5) + v1.yyyy == v1).any());
     v1 += v2.y;
-    assert((v1 ==Vector(2, 3, 4, 5)).all());
+    assert((v1 == Vector(2, 3, 4, 5)).all());
     v1 -= !v2;
     assert((v1 == Vector(1, 3, 4, 5)).all());
     v1.xyz += v2.www;
-    assert((v1 ==Vector(4, 6, 7, 5)).all());
+    assert((v1 == Vector(4, 6, 7, 5)).all());
 
 
     return 0;

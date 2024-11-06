@@ -10,7 +10,6 @@
 
 
 template <size_t N, detail::numeric T>
-    requires(N >= 2 && N <= 4)
 struct Vector;
 
 
@@ -18,126 +17,23 @@ namespace detail {
     struct Base;
 
     template <typename T>
-    concept integral_element = std::derived_from<T, Base> && integral<typename T::element_type>;
+    concept integral_element_constraint = std::derived_from<T, Base> && integral<typename T::element_type>;
 
-    template <typename Self, typename Other>
-    concept inplace_binary_compatible = std::derived_from<Other, Base> && Self::dim == Other::dim || numeric<Other>;
+    template <typename Other, typename Self>
+    concept rhs_constraint = std::derived_from<Other, Base> && Other::dim == Self::dim || numeric<Other>;
 
-    template <typename Self, typename Other>
-    concept inplace_bitwise_compatible = integral<typename Self::element_type> && (integral_element<Other> && Self::dim == Other::dim || integral<Other>);
-
-    template <typename L, typename R>
-    concept binary_compatible = std::derived_from<L, Base> && inplace_binary_compatible<L, R> || numeric<L> && std::derived_from<R, Base>;
+    template <typename Other, typename Self>
+    concept bitwise_rhs_constraint = integral_element_constraint<Other> && Self::dim == Other::dim || integral<Other>;
 
     template <typename L, typename R>
-    concept bitwise_compatible = std::derived_from<L, Base> && inplace_bitwise_compatible<L, R> || integral<L> && integral_element<R>;
+    concept binary_compatible = std::derived_from<L, Base> && rhs_constraint<R, L> || numeric<L> && std::derived_from<R, Base>;
+
+    template <typename L, typename R>
+    concept bitwise_compatible = integral_element_constraint<L> && bitwise_rhs_constraint<R, L> || integral<L> && integral_element_constraint<R>;
 
 
     struct Base {
-        // assignment operators
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l = r; });
-            return self;
-        }
-
-        // arithmetic operators
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator+=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l += r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator-=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l -= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator*=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l *= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator/=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l /= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_binary_compatible<Self, Other>
-        constexpr auto& operator%=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l %= r; });
-            return self;
-        }
-
-        // bitwise operators
-        template <typename Self, typename Other>
-            requires inplace_bitwise_compatible<Self, Other>
-        constexpr auto& operator&=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l &= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_bitwise_compatible<Self, Other>
-        constexpr auto& operator|=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l |= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_bitwise_compatible<Self, Other>
-        constexpr auto& operator^=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l ^= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_bitwise_compatible<Self, Other>
-        constexpr auto& operator<<=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l <<= r; });
-            return self;
-        }
-
-        template <typename Self, typename Other>
-            requires inplace_bitwise_compatible<Self, Other>
-        constexpr auto& operator>>=(this Self& self, const Other& other) noexcept {
-            self.apply_inplace_func(other, [](auto& l, auto r) noexcept { l >>= r; });
-            return self;
-        }
-
         // unary operators
-        // increment and decrement operators
-        constexpr auto& operator++(this auto& self) noexcept {
-            self.apply_unary_func([](auto& e) noexcept { ++e; });
-            return self;
-        }
-
-        constexpr auto& operator--(this auto& self) noexcept {
-            self.apply_unary_func([](auto& e) noexcept { --e; });
-            return self;
-        }
-
-        constexpr auto operator++(this auto& self, int) noexcept {
-            const auto tmp = self;
-            self.apply_unary_func([](auto& e) noexcept { ++e; });
-            return tmp;
-        }
-
-        constexpr auto operator--(this auto& self, int) noexcept {
-            const auto tmp = self;
-            self.apply_unary_func([](auto& e) noexcept { --e; });
-            return tmp;
-        }
-
         // arithmetic operators
         [[nodiscard]] constexpr auto operator+(this const auto& self) noexcept {
             return Vector(self);
@@ -145,147 +41,147 @@ namespace detail {
 
         template <typename Self>
         [[nodiscard]] constexpr auto operator-(this const Self& self) noexcept {
-            return self.apply_unary_func([](auto e) -> typename Self::element_type { return -e; });
+            return self.unary_func([](auto e) -> typename Self::element_type { return -e; });
         }
 
         // bitwise operators
         template <typename Self>
             requires integral<typename Self::element_type>
         [[nodiscard]] constexpr auto operator~(this const Self& self) noexcept {
-            return self.apply_unary_func([](auto e) -> typename Self::element_type { return ~e; });
+            return self.unary_func([](auto e) -> typename Self::element_type { return ~e; });
         }
 
         // logical operators
         [[nodiscard]] constexpr auto operator!(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return !e; });
+            return self.unary_func([](auto e) { return !e; });
         }
 
 
         // other unary functions
         template <numeric T>
         [[nodiscard]] constexpr auto cast(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) -> T { return e; });
+            return self.unary_func([](auto e) -> T { return e; });
         }
 
         template <typename Self>
         [[nodiscard]] constexpr auto abs(this const Self& self) noexcept {
-            return self.apply_unary_func([](auto e) -> typename Self::element_type { return std::abs(e); });
+            return self.unary_func([](auto e) -> typename Self::element_type { return std::abs(e); });
         }
 
         [[nodiscard]] constexpr auto sqrt(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::sqrt(e); });
+            return self.unary_func([](auto e) { return std::sqrt(e); });
         }
 
         [[nodiscard]] constexpr auto cbrt(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::cbrt(e); });
+            return self.unary_func([](auto e) { return std::cbrt(e); });
         }
 
         [[nodiscard]] constexpr auto exp(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::exp(e); });
+            return self.unary_func([](auto e) { return std::exp(e); });
         }
 
         [[nodiscard]] constexpr auto exp2(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::exp2(e); });
+            return self.unary_func([](auto e) { return std::exp2(e); });
         }
 
         [[nodiscard]] constexpr auto expm1(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::expm1(e); });
+            return self.unary_func([](auto e) { return std::expm1(e); });
         }
 
         [[nodiscard]] constexpr auto log(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::log(e); });
+            return self.unary_func([](auto e) { return std::log(e); });
         }
 
         [[nodiscard]] constexpr auto log10(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::log10(e); });
+            return self.unary_func([](auto e) { return std::log10(e); });
         }
 
         [[nodiscard]] constexpr auto log2(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::log2(e); });
+            return self.unary_func([](auto e) { return std::log2(e); });
         }
 
         [[nodiscard]] constexpr auto log1p(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::log1p(e); });
+            return self.unary_func([](auto e) { return std::log1p(e); });
         }
 
         [[nodiscard]] constexpr auto sin(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::sin(e); });
+            return self.unary_func([](auto e) { return std::sin(e); });
         }
 
         [[nodiscard]] constexpr auto cos(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::cos(e); });
+            return self.unary_func([](auto e) { return std::cos(e); });
         }
 
         [[nodiscard]] constexpr auto tan(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::tan(e); });
+            return self.unary_func([](auto e) { return std::tan(e); });
         }
 
         [[nodiscard]] constexpr auto asin(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::asin(e); });
+            return self.unary_func([](auto e) { return std::asin(e); });
         }
 
         [[nodiscard]] constexpr auto acos(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::acos(e); });
+            return self.unary_func([](auto e) { return std::acos(e); });
         }
 
         [[nodiscard]] constexpr auto atan(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::atan(e); });
+            return self.unary_func([](auto e) { return std::atan(e); });
         }
 
         [[nodiscard]] constexpr auto sinh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::sinh(e); });
+            return self.unary_func([](auto e) { return std::sinh(e); });
         }
 
         [[nodiscard]] constexpr auto cosh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::cosh(e); });
+            return self.unary_func([](auto e) { return std::cosh(e); });
         }
 
         [[nodiscard]] constexpr auto tanh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::tanh(e); });
+            return self.unary_func([](auto e) { return std::tanh(e); });
         }
 
         [[nodiscard]] constexpr auto asinh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::asinh(e); });
+            return self.unary_func([](auto e) { return std::asinh(e); });
         }
 
         [[nodiscard]] constexpr auto acosh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::acosh(e); });
+            return self.unary_func([](auto e) { return std::acosh(e); });
         }
 
         [[nodiscard]] constexpr auto atanh(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::atanh(e); });
+            return self.unary_func([](auto e) { return std::atanh(e); });
         }
 
         [[nodiscard]] constexpr auto erf(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::erf(e); });
+            return self.unary_func([](auto e) { return std::erf(e); });
         }
 
         [[nodiscard]] constexpr auto erfc(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::erfc(e); });
+            return self.unary_func([](auto e) { return std::erfc(e); });
         }
 
         [[nodiscard]] constexpr auto tgamma(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::tgamma(e); });
+            return self.unary_func([](auto e) { return std::tgamma(e); });
         }
 
         [[nodiscard]] constexpr auto lgamma(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::lgamma(e); });
+            return self.unary_func([](auto e) { return std::lgamma(e); });
         }
 
         [[nodiscard]] constexpr auto ceil(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::ceil(e); });
+            return self.unary_func([](auto e) { return std::ceil(e); });
         }
 
         [[nodiscard]] constexpr auto floor(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::floor(e); });
+            return self.unary_func([](auto e) { return std::floor(e); });
         }
 
         [[nodiscard]] constexpr auto trunc(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::trunc(e); });
+            return self.unary_func([](auto e) { return std::trunc(e); });
         }
 
         [[nodiscard]] constexpr auto round(this const auto& self) noexcept {
-            return self.apply_unary_func([](auto e) { return std::round(e); });
+            return self.unary_func([](auto e) { return std::round(e); });
         }
 
 
@@ -304,35 +200,154 @@ namespace detail {
         }
 
     private:
-        template <typename Self, size_t... Is>
-        constexpr void apply_inplace_func(this Self& self, const std::derived_from<Base> auto& other, const auto& op) noexcept {
-            self.apply_inplace_func(other, op, std::make_index_sequence<Self::dim>{});
-        }
-
-        template <typename Self, size_t... Is>
-        constexpr void apply_inplace_func(this Self& self, numeric auto e, const auto& op) noexcept {
-            self.apply_inplace_func(e, op, std::make_index_sequence<Self::dim>{});
-        }
-
-        template <typename Self, size_t... Is>
-        constexpr auto apply_unary_func(this const Self& self, const auto& op) noexcept {
-            return self.apply_unary_func(op, std::make_index_sequence<Self::dim>{});
-        }
-
-        template <std::derived_from<Base> Other, size_t... Is>
-        constexpr void apply_inplace_func(this auto& self, const Other& other, const auto& op, std::index_sequence<Is...>) noexcept {
-            typename Other::element_type tmp[]{other[Is]...};
-            (..., op(self[Is], tmp[Is]));
+        template <typename Self>
+        constexpr auto unary_func(this const Self& self, const auto& op) noexcept {
+            return self.unary_func(op, std::make_index_sequence<Self::dim>{});
         }
 
         template <size_t... Is>
-        constexpr void apply_inplace_func(this auto& self, numeric auto e, const auto& op, std::index_sequence<Is...>) noexcept {
+        constexpr auto unary_func(this const auto& self, const auto& op, std::index_sequence<Is...>) noexcept {
+            return Vector{op(self[Is])...};
+        }
+    };
+
+
+    struct MutableBase : Base {
+        // assignment operators
+        template <typename Self, std::derived_from<Base> Other>
+            requires(Self::dim != Other::dim)
+        auto& operator=(this Self&, const Other&) = delete;// prevent object slicing
+
+        template <typename Self>
+        constexpr auto& operator=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l = r; });
+            return self;
+        }
+
+        // arithmetic operators
+        template <typename Self>
+        constexpr auto& operator+=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l += r; });
+            return self;
+        }
+
+        template <typename Self>
+        constexpr auto& operator-=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l -= r; });
+            return self;
+        }
+
+        template <typename Self>
+        constexpr auto& operator*=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l *= r; });
+            return self;
+        }
+
+        template <typename Self>
+        constexpr auto& operator/=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l /= r; });
+            return self;
+        }
+
+        template <typename Self>
+        constexpr auto& operator%=(this Self& self, const rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l %= r; });
+            return self;
+        }
+
+        // bitwise operators
+        template <integral_element_constraint Self>
+        constexpr auto& operator&=(this Self& self, const bitwise_rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l &= r; });
+            return self;
+        }
+
+        template <integral_element_constraint Self>
+        constexpr auto& operator|=(this Self& self, const bitwise_rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l |= r; });
+            return self;
+        }
+
+        template <integral_element_constraint Self>
+        constexpr auto& operator^=(this Self& self, const bitwise_rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l ^= r; });
+            return self;
+        }
+
+        template <integral_element_constraint Self>
+        constexpr auto& operator<<=(this Self& self, const bitwise_rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l <<= r; });
+            return self;
+        }
+
+        template <integral_element_constraint Self>
+        constexpr auto& operator>>=(this Self& self, const bitwise_rhs_constraint<Self> auto& other) noexcept {
+            self.inplace_func(other, [](auto& l, auto r) noexcept { l >>= r; });
+            return self;
+        }
+
+        // unary operators
+        // increment and decrement operators
+        constexpr auto& operator++(this auto& self) noexcept {
+            self.inplace_func([](auto& e) noexcept { ++e; });
+            return self;
+        }
+
+        constexpr auto& operator--(this auto& self) noexcept {
+            self.inplace_func([](auto& e) noexcept { --e; });
+            return self;
+        }
+
+        constexpr auto operator++(this auto& self, int) noexcept {
+            const auto tmp = self;
+            self.inplace_func([](auto& e) noexcept { ++e; });
+            return tmp;
+        }
+
+        constexpr auto operator--(this auto& self, int) noexcept {
+            const auto tmp = self;
+            self.inplace_func([](auto& e) noexcept { --e; });
+            return tmp;
+        }
+
+    private:
+        template <typename Self>
+        constexpr void inplace_func(this Self& self, const std::derived_from<Base> auto& v, const auto& op) noexcept {
+            self.inplace_func(v, op, std::make_index_sequence<Self::dim>{});
+        }
+
+        template <typename Self, std::derived_from<Base> Other, size_t... Is>
+        constexpr void inplace_func(this Self& self, const Other& v, const auto& op, std::index_sequence<Is...>) noexcept {
+            using LT = typename Self::element_type;
+            using RT = typename Other::element_type;
+            if constexpr (std::is_same_v<LT, RT>) {
+                if (self.data == v.data) {
+                    RT tmp[]{v[Is]...};
+                    (..., op(self[Is], tmp[Is]));
+                    return;
+                }
+            }
+            (..., op(self[Is], v[Is]));
+        }
+
+        template <typename Self>
+        constexpr void inplace_func(this Self& self, numeric auto e, const auto& op) noexcept {
+            self.inplace_func(e, op, std::make_index_sequence<Self::dim>{});
+        }
+
+        template <size_t... Is>
+        constexpr void inplace_func(this auto& self, numeric auto e, const auto& op, std::index_sequence<Is...>) noexcept {
             (..., op(self[Is], e));
         }
 
+        template <typename Self>
+        constexpr void inplace_func(this Self& self, const auto& op) noexcept {
+            self.unary_func(op, std::make_index_sequence<Self::dim>{});
+        }
+
         template <size_t... Is>
-        constexpr auto apply_unary_func(this const auto& self, const auto& op, std::index_sequence<Is...>) noexcept {
-            return Vector{op(self[Is])...};
+        constexpr void inplace_func(this auto& self, const auto& op, std::index_sequence<Is...>) noexcept {
+            (..., op(self[Is]));
         }
     };
 
@@ -353,15 +368,10 @@ namespace detail {
         return Vector{op(e, rhs[Is])...};
     }
 
-    template <std::derived_from<Base> L, std::derived_from<Base> R>
-        requires(L::dim == R::dim)
-    [[nodiscard]] constexpr auto binary_func(const L& lhs, const R& rhs, const auto& op) noexcept {
-        return binary_func(lhs, rhs, op, std::make_index_sequence<L::dim>{});
-    }
 
     template <std::derived_from<Base> L>
-    [[nodiscard]] constexpr auto binary_func(const L& lhs, numeric auto e, const auto& op) noexcept {
-        return binary_func(lhs, e, op, std::make_index_sequence<L::dim>{});
+    [[nodiscard]] constexpr auto binary_func(const L& lhs, const rhs_constraint<L> auto& rhs, const auto& op) noexcept {
+        return binary_func(lhs, rhs, op, std::make_index_sequence<L::dim>{});
     }
 
     template <std::derived_from<Base> R>
@@ -495,34 +505,29 @@ namespace detail {
 
 
     template <size_t N, numeric T, size_t... Is>
-    struct Swizzle : Base {
+    struct Swizzle : MutableBase {
+        friend struct MutableBase;
+
+        template <size_t M, numeric U, size_t... Js>
+        friend struct Swizzle;
+
+        template <size_t M, numeric U>
+        friend struct VectorBase;
+
+
         static constexpr size_t dim = sizeof...(Is);
         using element_type = T;
 
 
-        using Base::operator=;
-        using Base::operator+=;
-        using Base::operator-=;
-        using Base::operator*=;
-        using Base::operator/=;
-        using Base::operator%=;
-        using Base::operator&=;
-        using Base::operator|=;
-        using Base::operator^=;
-        using Base::operator<<=;
-        using Base::operator>>=;
+        using MutableBase::operator=;
 
 
         constexpr auto& operator=(const Swizzle& v) noexcept {
             if (this != &v) {
-                std::copy_n(v.data, dim, data);
+                (..., (data[Is] = v.data[Is]));
             }
             return *this;
         }
-
-        template <std::derived_from<Base> Other>
-            requires(Other::dim != dim)
-        auto& operator=(const Other& v) = delete;
 
 
         template <typename Self>
@@ -542,26 +547,20 @@ namespace detail {
     template <size_t N, numeric T, size_t... Is>
         requires is_duplicated_v<Is...>
     struct Swizzle<N, T, Is...> : Base {
+        friend struct MutableBase;
+
+        template <size_t M, numeric U, size_t... Js>
+        friend struct Swizzle;
+
+        template <size_t M, numeric U>
+        friend struct VectorBase;
+
+
         static constexpr size_t dim = sizeof...(Is);
         using element_type = T;
 
 
-        auto& operator=(auto&&) = delete;
-        auto& operator+=(auto&&) = delete;
-        auto& operator-=(auto&&) = delete;
-        auto& operator*=(auto&&) = delete;
-        auto& operator/=(auto&&) = delete;
-        auto& operator%=(auto&&) = delete;
-        auto& operator&=(auto&&) = delete;
-        auto& operator|=(auto&&) = delete;
-        auto& operator^=(auto&&) = delete;
-        auto& operator<<=(auto&&) = delete;
-        auto& operator>>=(auto&&) = delete;
-
-        auto& operator++() = delete;
-        auto& operator--() = delete;
-        auto operator++(int) = delete;
-        auto operator--(int) = delete;
+        auto& operator=(auto&&) = delete;// prevent swizzles with duplicate indices from being assigned to
 
 
         [[nodiscard]] constexpr T operator[](size_t i) const noexcept {
@@ -579,7 +578,7 @@ namespace detail {
 
 
     template <size_t N, numeric T>
-    struct VectorBase : Base {
+    struct VectorBase {
         static constexpr size_t dim = N;
         using element_type = T;
 
@@ -587,56 +586,50 @@ namespace detail {
         constexpr VectorBase() noexcept : VectorBase(T{}) {}
 
         constexpr explicit VectorBase(T e) noexcept {
-            std::fill_n(static_cast<Vector<N, T>&>(*this).data, N, e);
+            std::fill_n(data(), N, e);
         }
 
         template <std::same_as<T>... Ts>
             requires(sizeof...(Ts) == N)
         constexpr VectorBase(Ts... es) noexcept {
-            new (static_cast<Vector<N, T>&>(*this).data) T[]{es...};
+            new (data()) T[]{es...};
         }
 
         constexpr explicit VectorBase(const T* const buffer) noexcept {
-            std::copy_n(buffer, N, static_cast<Vector<N, T>&>(*this).data);
+            std::copy_n(buffer, N, data());
         }
 
-        constexpr VectorBase(const VectorBase& v) noexcept : VectorBase(static_cast<const Vector<N, T>&>(v).data) {}
+        constexpr VectorBase(const VectorBase& v) noexcept : VectorBase(v.data()) {}
 
         template <size_t M, size_t... Is>
             requires(sizeof...(Is) == N)
-        constexpr explicit VectorBase(const Swizzle<M, T, Is...>& v) noexcept {
-            [&]<size_t... Js>(std::index_sequence<Js...>) noexcept {
-                new (static_cast<Vector<N, T>&>(*this).data) T[]{static_cast<T>(v[Js])...};
-            }(std::make_index_sequence<N>{});
-        }
+        constexpr VectorBase(const Swizzle<M, T, Is...>& v) noexcept : VectorBase(v.data[Is]...) {}
 
 
         template <typename Self>
         [[nodiscard]] constexpr auto&& operator[](this Self&& self, size_t i) noexcept {
             return std::forward<Self>(self).data[i];
         }
+
+    private:
+        T* data() noexcept {
+            return static_cast<Vector<N, T>&>(*this).data;
+        }
+
+        const T* data() const noexcept {
+            return static_cast<const Vector<N, T>&>(*this).data;
+        }
     };
 }// namespace detail
 
 
 template <detail::numeric T>
-struct Vector<2, T> : detail::VectorBase<2, T> {
+struct Vector<2, T> : detail::VectorBase<2, T>, detail::MutableBase {
     using detail::VectorBase<2, T>::dim;
     using typename detail::VectorBase<2, T>::element_type;
 
 
     using detail::VectorBase<2, T>::VectorBase;
-    using detail::Base::operator=;
-    using detail::Base::operator+=;
-    using detail::Base::operator-=;
-    using detail::Base::operator*=;
-    using detail::Base::operator/=;
-    using detail::Base::operator%=;
-    using detail::Base::operator&=;
-    using detail::Base::operator|=;
-    using detail::Base::operator^=;
-    using detail::Base::operator<<=;
-    using detail::Base::operator>>=;
 
 
     constexpr auto& operator=(const Vector& v) noexcept {
@@ -646,9 +639,7 @@ struct Vector<2, T> : detail::VectorBase<2, T> {
         return *this;
     }
 
-    template <std::derived_from<detail::Base> Other>
-        requires(Other::dim != dim)
-    auto& operator=(const Other& v) = delete;
+    using detail::MutableBase::operator=;
 
 
     union {
@@ -691,23 +682,12 @@ struct Vector<2, T> : detail::VectorBase<2, T> {
 };
 
 template <detail::numeric T>
-struct Vector<3, T> : detail::VectorBase<3, T> {
+struct Vector<3, T> : detail::VectorBase<3, T>, detail::MutableBase {
     using detail::VectorBase<3, T>::dim;
     using typename detail::VectorBase<3, T>::element_type;
 
 
     using detail::VectorBase<3, T>::VectorBase;
-    using detail::Base::operator=;
-    using detail::Base::operator+=;
-    using detail::Base::operator-=;
-    using detail::Base::operator*=;
-    using detail::Base::operator/=;
-    using detail::Base::operator%=;
-    using detail::Base::operator&=;
-    using detail::Base::operator|=;
-    using detail::Base::operator^=;
-    using detail::Base::operator<<=;
-    using detail::Base::operator>>=;
 
 
     template <std::derived_from<detail::Base> V>
@@ -726,9 +706,7 @@ struct Vector<3, T> : detail::VectorBase<3, T> {
         return *this;
     }
 
-    template <std::derived_from<detail::Base> Other>
-        requires(Other::dim != dim)
-    auto& operator=(const Other& v) = delete;
+    using detail::MutableBase::operator=;
 
 
     union {
@@ -864,23 +842,12 @@ struct Vector<3, T> : detail::VectorBase<3, T> {
 
 
 template <detail::numeric T>
-struct Vector<4, T> : detail::VectorBase<4, T> {
+struct Vector<4, T> : detail::VectorBase<4, T>, detail::MutableBase {
     using detail::VectorBase<4, T>::dim;
     using typename detail::VectorBase<4, T>::element_type;
 
 
     using detail::VectorBase<4, T>::VectorBase;
-    using detail::Base::operator=;
-    using detail::Base::operator+=;
-    using detail::Base::operator-=;
-    using detail::Base::operator*=;
-    using detail::Base::operator/=;
-    using detail::Base::operator%=;
-    using detail::Base::operator&=;
-    using detail::Base::operator|=;
-    using detail::Base::operator^=;
-    using detail::Base::operator<<=;
-    using detail::Base::operator>>=;
 
 
     template <std::derived_from<detail::Base> V>
@@ -917,9 +884,7 @@ struct Vector<4, T> : detail::VectorBase<4, T> {
         return *this;
     }
 
-    template <std::derived_from<detail::Base> Other>
-        requires(Other::dim != dim)
-    auto& operator=(const Other& v) = delete;
+    using detail::MutableBase::operator=;
 
 
     union {
@@ -1286,8 +1251,8 @@ Vector(const T (&arr)[N]) -> Vector<N, T>;
 template <detail::numeric T, std::same_as<T>... Ts>
 Vector(T, Ts...) -> Vector<1 + sizeof...(Ts), T>;
 
-template <size_t N, detail::numeric T, size_t... Is>
-Vector(detail::Swizzle<N, T, Is...>) -> Vector<sizeof...(Is), T>;
+template <std::derived_from<detail::Base> V>
+Vector(V) -> Vector<V::dim, typename V::element_type>;
 
 template <detail::numeric T, std::derived_from<detail::Base> V>
     requires std::is_same_v<typename V::element_type, T>

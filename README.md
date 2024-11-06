@@ -2,10 +2,11 @@
 
 ## 实现细节
 
-- 使用“deducing this”实现一个公共基类Base，Base中实现了Vector和Swizzle共有的方法（赋值运算符、一元运算符、一元数学函数、逐元素cast）
-- 使用CRT实现Vector的基类VectorBase，用以实现各维度Vector共有的构造函数和索引运算符
-- 使用匿名union实现类似C#的属性
-- 限制含有重复元素的Swizzle对象为只读对象，通过删除其可变的成员函数（赋值运算符、前置/后置递增递减运算符）实现
+- 实现一个只读公共基类Base，其中实现了Vector和Swizzle共有的const方法（一元运算符（递增递减运算符除外）、一元数学函数、逐元素cast、any、all）
+- 实现一个可变基类MutableBase，其中实现了Vector和Swizzle共有的非const方法（赋值运算符、前置/后置递增递减运算符）
+- 实现一个Vector的基类VectorBase，用以实现各维度Vector共有的构造函数和索引运算符
+- 使用匿名union和匿名struct实现类似C#的属性
+- 限制含有重复元素的Swizzle对象为只读对象，只继承自只读公共基类Base，删除其赋值运算符
 
 ## 使用到的C++特性 
 
@@ -16,7 +17,7 @@
 - concept、requires约束
 - CTAD
 - delete函数
-- 匿名union
+- 匿名union和匿名struct
 
 ## demo
 
@@ -33,23 +34,28 @@ int main() {
     Vector b(1, 2, 3);
     Vector c(a);
     Vector d(b.cast<float>());
-    double arr[]{1, 2};
+    int arr[]{1, 2};
     Vector e(arr);
     Vector f(a.xx);
-    Vector g(a.zx, b.yy);
+    Vector g(1, e);
+    Vector h(a.zx, b.yy);
 
-    std::cout << a << std::endl;
+    std::cout << b << std::endl;
+    std::cout << b.zyx << std::endl;
 
-    a = {1, 2, 3};
-    a = b;
     a = d;
-    a = d.xyx;
-    //    a = e;  // error
-    //    a = f;  // error
-    //    a = a.xx;  // error
-    a.xy = b.yx;
+    a = d.zyx;
+    a.xyz = d.zyx;
+    a.xyz = d.zyx;
+    //    a = e;   // error
+    //    a = e.xy;   // error
+    //    a.xyz = e;   // error
+    //    a.xyz = e.xy;   // error
+    a.zy = e;
+    a.zy = e.xy;
     a.zyx = 1;
-    //    a.xx = 1;  // error
+    a.xy = d.x;
+    //    a.xyx = 1;    // error
 
     auto x = a + 1.;
     auto y = ~a;
@@ -65,14 +71,13 @@ int main() {
     assert(!(Vector(0, 3, 4, 5) + v1.xxxx == v1).all());
     assert((Vector(0, 0, 4, 5) + v1.yyyy == v1).any());
     v1 += v2.y;
-    assert((v1 ==Vector(2, 3, 4, 5)).all());
+    assert((v1 == Vector(2, 3, 4, 5)).all());
     v1 -= !v2;
     assert((v1 == Vector(1, 3, 4, 5)).all());
     v1.xyz += v2.www;
-    assert((v1 ==Vector(4, 6, 7, 5)).all());
+    assert((v1 == Vector(4, 6, 7, 5)).all());
 
 
     return 0;
 }
-
 ```
